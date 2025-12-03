@@ -66,15 +66,6 @@ class MainViewModel{
         selectionSize = Size(selectionSize.width + offset.x, selectionSize.height + offset.y)
     }
 
-    // Правая кнопка - сдвиг изображения
-    fun onStartPanning(offset: Offset){
-        // Начало сдвига
-    }
-
-    fun onStopPanning(){
-        // Завершение сдвига
-    }
-
     fun onPanning(offset: Offset){
         // Конвертируем пиксельное смещение в смещение в координатах комплексной плоскости
         val dx = -offset.x / plain.xDen
