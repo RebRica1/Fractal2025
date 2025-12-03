@@ -116,7 +116,5 @@ class MainViewModel {
         val exporter = FractalExporter(plain)
         exporter.saveJPG(path)
     }
-    fun onSelecting(offset: Offset){
-        selectionSize = Size(selectionSize.width + offset.x, selectionSize.height + offset.y)
-    }
+
 }
