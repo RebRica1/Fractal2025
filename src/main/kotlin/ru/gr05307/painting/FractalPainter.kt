@@ -1,5 +1,5 @@
 package ru.gr05307.painting
-
+import ru.gr05307.fractal.calculateIterations
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -29,7 +29,8 @@ class FractalPainter(private val plain: Plain): Painter {
     override suspend fun paint(scope: DrawScope) {
         plain.width = scope.size.width
         plain.height = scope.size.height
-        val m = Mandelbrot(nMax = 200)
+        val nMax = calculateIterations(plain)
+        val m = Mandelbrot(nMax = nMax)
         for (iX in 0..<plain.width.toInt()) {
             coroutineScope {
                 val x = iX.toFloat()
