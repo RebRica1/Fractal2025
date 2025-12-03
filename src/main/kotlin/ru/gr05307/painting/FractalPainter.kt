@@ -9,7 +9,6 @@ import ru.gr05307.fractal.Mandelbrot
 import ru.gr05307.math.Complex
 import ru.gr05307.painting.convertation.Converter
 import ru.gr05307.painting.convertation.Plain
-import kotlin.concurrent.thread
 import kotlin.math.absoluteValue
 import kotlin.math.cos
 import kotlin.math.sin

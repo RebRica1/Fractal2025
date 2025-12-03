@@ -157,7 +157,7 @@ class MainViewModel {
     }
 
     /** Обновление выделяемой области */
-    fun onSelecting(offset: Offset){
+    fun onSelecting(offset: Offset) {
         if (!isTourPlaying)
             selectionSize = Size(selectionSize.width + offset.x, selectionSize.height + offset.y)
     }
