@@ -1,22 +1,13 @@
 package ru.gr05307.viewmodels
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asSkiaBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import ru.gr05307.painting.FractalPainter
 import ru.gr05307.painting.convertation.Converter
 import ru.gr05307.painting.convertation.Plain
@@ -28,13 +19,19 @@ class MainViewModel {
     var fractalImage: ImageBitmap = ImageBitmap(0, 0)
     var selectionOffset by mutableStateOf(Offset(0f, 0f))
     var selectionSize by mutableStateOf(Size(0f, 0f))
-    val plain = Plain(-2.0,1.0,-1.0,1.0)
+    val plain = Plain(-2.0, 1.0, -1.0, 1.0)
     private val fractalPainter = FractalPainter(plain)
     private var mustRepaint by mutableStateOf(true)
     private val undoManager = UndoManager(maxSize = 100)
 
-    // Флаг для закрытия панели Жюлиа
-    var shouldCloseJuliaPanel by mutableStateOf(false)
+    // Артем: Обратная связь о выборе точки
+    var onJuliaPointSelected: ((Complex) -> Unit)? = null
+
+    // Артем: Обратная связь о необходимости закрытия окна
+    var shouldCloseJuliaPanel: ((Boolean) -> Unit)? = null
+
+    // Артем: Флажок для закрытия панели Юли
+    private var _shouldCloseJuliaPanel by mutableStateOf(false)
 
     /** Обновление размеров окна с сохранением пропорций */
     private fun updatePlainSize(newWidth: Float, newHeight: Float) {
@@ -106,10 +103,10 @@ class MainViewModel {
         val selAspect = selWidth / selHeight
         if (selAspect > aspect) {
             // ширина больше, подгоняем высоту
-            selHeight = (selWidth / aspect).toFloat()  // Приведение к Float
+            selHeight = (selWidth / aspect).toFloat()
         } else {
             // высота больше, подгоняем ширину
-            selWidth = (selHeight * aspect).toFloat()  // Приведение к Float
+            selWidth = (selHeight * aspect).toFloat()
         }
 
         // Рассчитываем новые границы фрактала
@@ -125,7 +122,8 @@ class MainViewModel {
 
         selectionSize = Size(0f, 0f)
         mustRepaint = true
-        shouldCloseJuliaPanel = true // Устанавливаем флаг для закрытия
+        _shouldCloseJuliaPanel = true
+        shouldCloseJuliaPanel?.invoke(true)
     }
 
     fun canUndo(): Boolean = undoManager.canUndo()
@@ -139,11 +137,12 @@ class MainViewModel {
             plain.yMax = prevState.yMax
             selectionSize = Size(0f, 0f)
             mustRepaint = true
-            shouldCloseJuliaPanel = true // Устанавливаем флаг для закрытия
+            _shouldCloseJuliaPanel = true
+            shouldCloseJuliaPanel?.invoke(true)
         }
     }
 
-    fun onPanning(offset: Offset){
+    fun onPanning(offset: Offset) {
         // Конвертируем пиксельное смещение в смещение в координатах комплексной плоскости
         val dx = -offset.x / plain.xDen
         val dy = offset.y / plain.yDen
@@ -154,7 +153,8 @@ class MainViewModel {
         plain.yMax += dy
 
         mustRepaint = true
-        shouldCloseJuliaPanel = true // Устанавливаем флаг для закрытия
+        _shouldCloseJuliaPanel = true
+        shouldCloseJuliaPanel?.invoke(true)
     }
 
     fun saveFractalToJpg(path: String) {
@@ -162,8 +162,16 @@ class MainViewModel {
         exporter.saveJPG(path)
     }
 
-    // Сброс флага закрытия (вызывается после закрытия панели)
+    // Артем: Сброс флага закрытия окна Юли
     fun resetCloseJuliaFlag() {
-        shouldCloseJuliaPanel = false
+        _shouldCloseJuliaPanel = false
+    }
+
+    // Артем: Обработка клика по точке
+    fun onPointClicked(x: Float, y: Float) {
+        val re = Converter.xScr2Crt(x, plain)
+        val im = Converter.yScr2Crt(y, plain)
+        val complex = Complex(re, im)
+        onJuliaPointSelected?.invoke(complex)
     }
 }

@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.input.pointer.*
 import kotlinx.coroutines.launch
-// Изменения от Артема этап 3
+// Изменения от Артема
 import androidx.compose.foundation.gestures.detectTapGestures
 
 @Composable
@@ -54,11 +54,11 @@ fun SelectionPanel(
     var dragButton by remember { mutableStateOf<PointerButton?>(null) }
 
     Canvas(modifier = modifier
-        // Детект клика
+        // Артем: Детект клика
         .pointerInput(Unit) {
             detectTapGestures( onTap = { pos -> onClick(pos) } )
         }
-            // Конец детекта
+            // Артем: Конец детекта
         .pointerInput(Unit) {
         awaitPointerEventScope {
             while (true) {
