@@ -1,80 +1,106 @@
 package ru.gr05307.julia
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.WindowState
-import androidx.compose.ui.window.rememberWindowState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ru.gr05307.math.Complex
 
-// Простой менеджер для хранения параметров окон Жюлиа
-object JuliaWindowManager {
-    private val _windows = mutableListOf<Complex>()
-    val windows: List<Complex> get() = _windows
-
-    fun openWindow(c: Complex) {
-        _windows.add(c)
-    }
-
-    fun closeWindow(c: Complex) {
-        _windows.remove(c)
-    }
-}
-
 @Composable
-fun JuliaWindow(
-    c: Complex,
-    onClose: () -> Unit
+fun JuliaPanel(
+    c: Complex?,
+    onClose: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    var imageState by remember { mutableStateOf<List<List<Color>>?>(null) }
-    var windowSize by remember { mutableStateOf(IntSize(800, 600)) }
-    val scope = rememberCoroutineScope()
-    val windowState = rememberWindowState() // Создаем state здесь
+    // Если нет точки, не показываем панель
+    if (c == null) return
 
-    LaunchedEffect(c, windowSize) {
+    var imageState by remember { mutableStateOf<List<List<Color>>?>(null) }
+    var panelSize by remember { mutableStateOf(IntSize(300, 200)) }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(c, panelSize) {
         scope.launch(Dispatchers.Default) {
-            imageState = renderJulia(c, windowSize.width, windowSize.height)
+            imageState = renderJulia(c, panelSize.width, panelSize.height)
         }
     }
 
-    Window(
-        onCloseRequest = onClose,
-        title = "Множество Жюлиа: c = ${c.re} + ${c.im}i",
-        state = windowState
+    Box(
+        modifier = modifier
+            .size(320.dp, 240.dp) // Фиксированный размер
+            .border(2.dp, Color.Gray)
+            .background(Color.White)
     ) {
-        MaterialTheme {
-            Canvas(Modifier.fillMaxSize()) {
-                windowSize = IntSize(size.width.toInt(), size.height.toInt())
-                val img = imageState ?: return@Canvas
-                val w = size.width.toInt()
-                val h = size.height.toInt()
+        // Заголовок с кнопкой закрытия
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.LightGray)
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "Жюлиа: c = ${"%.3f".format(c.re)} + ${"%.3f".format(c.im)}i",
+                style = MaterialTheme.typography.caption
+            )
+            IconButton(
+                onClick = onClose,
+                modifier = Modifier.size(16.dp)
+            ) {
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = "Закрыть",
+                    tint = Color.Red
+                )
+            }
+        }
 
-                for (x in 0 until w) {
-                    for (y in 0 until h) {
-                        drawRect(
-                            color = img[x][y],
-                            topLeft = androidx.compose.ui.geometry.Offset(x.toFloat(), y.toFloat()),
-                            size = androidx.compose.ui.geometry.Size(1f, 1f)
-                        )
-                    }
+        // Область с изображением Жюлиа
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 30.dp) // Отступ для заголовка
+        ) {
+            panelSize = IntSize(size.width.toInt(), size.height.toInt())
+            val img = imageState ?: return@Canvas
+            val w = size.width.toInt()
+            val h = size.height.toInt()
+
+            for (x in 0 until w) {
+                for (y in 0 until h) {
+                    drawRect(
+                        color = img[x][y],
+                        topLeft = androidx.compose.ui.geometry.Offset(x.toFloat(), y.toFloat()),
+                        size = androidx.compose.ui.geometry.Size(1f, 1f)
+                    )
                 }
             }
         }
     }
 }
 
+// Оптимизированная версия рендеринга для маленького размера
 private fun renderJulia(c: Complex, w: Int, h: Int): List<List<Color>> {
-    val maxIter = 300
+    val maxIter = 200 // Меньше итераций для быстрого отображения
     val result = List(w) { MutableList(h) { Color.Black } }
 
-    val scale = 1.6
+    val scale = 2.0 // Больший масштаб для лучшей детализации в маленьком окне
     for (xi in 0 until w) {
         val re = (xi - w/2.0) / (w/2.0) * scale
         for (yi in 0 until h) {

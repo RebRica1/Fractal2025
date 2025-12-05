@@ -17,8 +17,17 @@ import ru.gr05307.viewmodels.MainViewModel
 
 // Добавления от Артёма
 import androidx.compose.runtime.*
-import ru.gr05307.julia.JuliaWindow
+import ru.gr05307.julia.JuliaPanel
 import ru.gr05307.math.Complex
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.*
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 // Конец
 
 // Полностью добавленный код от Артема
@@ -54,60 +63,141 @@ class JuliaViewModelWrapper(
 
 fun main(): Unit = application {
 
-    var juliaPoints by remember { mutableStateOf<List<Complex>>(emptyList()) }
-
     Window(
         onCloseRequest = ::exitApplication,
         title = "Фрактал - 2025 (гр. 05-307)"
     ) {
+        var currentJuliaPoint by remember { mutableStateOf<Complex?>(null) }
+        var showJuliaPanel by remember { mutableStateOf(false) }
+
         val baseViewModel = remember { MainViewModel() }
 
         val wrappedViewModel = remember {
             JuliaViewModelWrapper(baseViewModel) { complex ->
-                juliaPoints = juliaPoints + complex
+                currentJuliaPoint = complex
+                showJuliaPanel = true // Автоматически показываем панель при выборе точки
             }
         }
 
         // Переезд Appa:
         MaterialTheme {
-            Box {
-                PaintPanel(
-                    Modifier.fillMaxSize(),
-                    onImageUpdate = { image -> wrappedViewModel.onImageUpdate(image) },
-                    onPaint = { scope -> wrappedViewModel.paint(scope) }
-                )
-                SelectionPanel(
-                    wrappedViewModel.selectionOffset,
-                    wrappedViewModel.selectionSize,
-                    Modifier.fillMaxSize(),
-                    onClick = { pos -> wrappedViewModel.onPointClicked(pos.x, pos.y) },
-                    onDragStart = wrappedViewModel::onStartSelecting,
-                    onDragEnd = wrappedViewModel::onStopSelecting,
-                    onDrag = wrappedViewModel::onSelecting,
-                    onPan = wrappedViewModel::onPanning,
-                )
-                Button(
-                    onClick = { wrappedViewModel.performUndo() },
-                    enabled = wrappedViewModel.canUndo(),
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(16.dp)
+            Row(modifier = Modifier.fillMaxSize()) {
+                // Основная область с фракталом
+                Box(modifier = Modifier.weight(1f)) {
+                    PaintPanel(
+                        modifier = Modifier.fillMaxSize(),
+                        onImageUpdate = { image -> wrappedViewModel.onImageUpdate(image) },
+                        onPaint = { scope -> wrappedViewModel.paint(scope) }
+                    )
+                    SelectionPanel(
+                        wrappedViewModel.selectionOffset,
+                        wrappedViewModel.selectionSize,
+                        Modifier.fillMaxSize(),
+                        onClick = { pos -> wrappedViewModel.onPointClicked(pos.x, pos.y) },
+                        onDragStart = wrappedViewModel::onStartSelecting,
+                        onDragEnd = wrappedViewModel::onStopSelecting,
+                        onDrag = wrappedViewModel::onSelecting,
+                        onPan = wrappedViewModel::onPanning,
+                    )
+
+                    // Кнопка Назад в правом верхнем углу
+                    Button(
+                        onClick = { wrappedViewModel.performUndo() },
+                        enabled = wrappedViewModel.canUndo(),
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(16.dp)
+                    ) {
+                        Text("Назад")
+                    }
+                }
+
+                // Анимированная боковая панель Жюлиа
+                AnimatedVisibility(
+                    visible = showJuliaPanel && currentJuliaPoint != null,
+                    enter = slideInHorizontally(animationSpec = tween(300)) { it },
+                    exit = slideOutHorizontally(animationSpec = tween(300)) { it },
+                    modifier = Modifier.width(350.dp)
                 ) {
-                    Text("Назад")
+                    Column(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(350.dp)
+                            .background(Color.White)
+                            .border(1.dp, Color.Gray)
+                    ) {
+                        // Заголовок панели
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colors.primary)
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Множество Жюлиа",
+                                color = Color.White,
+                                style = MaterialTheme.typography.h6
+                            )
+                            IconButton(
+                                onClick = {
+                                    showJuliaPanel = false
+                                    currentJuliaPoint = null
+                                }
+                            ) {
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = "Закрыть",
+                                    tint = Color.White
+                                )
+                            }
+                        }
+
+                        // Информация о точке
+                        if (currentJuliaPoint != null) {
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                elevation = 4.dp
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp)
+                                ) {
+                                    Text(
+                                        text = "Выбранная точка:",
+                                        style = MaterialTheme.typography.subtitle1
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = "c = ${"%.6f".format(currentJuliaPoint!!.re)} + ${"%.6f".format(currentJuliaPoint!!.im)}i",
+                                        style = MaterialTheme.typography.body1
+                                    )
+                                }
+                            }
+                        }
+
+                        // Панель с изображением Жюлиа
+                        if (currentJuliaPoint != null) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(16.dp)
+                            ) {
+                                JuliaPanel(
+                                    c = currentJuliaPoint,
+                                    onClose = {
+                                        showJuliaPanel = false
+                                        currentJuliaPoint = null
+                                    },
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                        }
+                    }
                 }
             }
-        }
-    }
-
-    // Создаем окна Жюлиа для каждой точки
-    for ((index, c) in juliaPoints.withIndex()) {
-        key(index) {
-            JuliaWindow(
-                c = c,
-                onClose = {
-                    juliaPoints = juliaPoints.filterIndexed { i, _ -> i != index }
-                }
-            )
         }
     }
 }
