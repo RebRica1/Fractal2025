@@ -21,6 +21,12 @@ import ru.gr05307.painting.FractalPainter
 import ru.gr05307.painting.convertation.Converter
 import ru.gr05307.painting.convertation.Plain
 import ru.gr05307.ExportFractal.FractalExporter
+import ru.gr05307.painting.*
+import ru.gr05307.painting.FractalFunction
+import ru.gr05307.painting.ColorFunction
+
+
+
 class MainViewModel{
 import ru.gr05307.rollback.UndoManager
 
@@ -29,11 +35,16 @@ class MainViewModel {
     var selectionOffset by mutableStateOf(Offset(0f, 0f))
     var selectionSize by mutableStateOf(Size(0f, 0f))
     private val plain = Plain(-2.0,1.0,-1.0,1.0)
-    private val fractalPainter = FractalPainter(plain)
+    //private val fractalPainter = FractalPainter(plain)
     private var mustRepaint by mutableStateOf(true)
     private val undoManager = UndoManager(maxSize = 100)
 
-    /** Обновление размеров окна с сохранением пропорций */
+    private var currentFractalFunc: FractalFunction = mandelbrotFunc
+    private var currentColorFunc: ColorFunction = rainbow
+
+    private val fractalPainter = FractalPainter(plain, currentFractalFunc, currentColorFunc)
+
+    // Обновление размеров окна с сохранением пропорций
     private fun updatePlainSize(newWidth: Float, newHeight: Float) {
         plain.width = newWidth
         plain.height = newHeight
@@ -56,7 +67,7 @@ class MainViewModel {
         }
     }
 
-    /** Рисование фрактала */
+    // Рисование фрактала
     fun paint(scope: DrawScope) = runBlocking {
         updatePlainSize(scope.size.width, scope.size.height)
 
@@ -73,23 +84,23 @@ class MainViewModel {
         mustRepaint = false
     }
 
-    /** Обновление ImageBitmap после рисования */
+    // Обновление ImageBitmap после рисования
     fun onImageUpdate(image: ImageBitmap) {
         fractalImage = image
     }
 
-    /** Начало выделения области */
+    // Начало выделения области
     fun onStartSelecting(offset: Offset) {
         selectionOffset = offset
         selectionSize = Size(0f, 0f)
     }
 
-    /** Обновление выделяемой области */
+    // Обновление выделяемой области
     fun onSelecting(offset: Offset) {
         selectionSize = Size(selectionSize.width + offset.x, selectionSize.height + offset.y)
     }
 
-    /** Завершение выделения и масштабирование */
+    // Завершение выделения и масштабирование
     fun onStopSelecting() {
         if (selectionSize.width == 0f || selectionSize.height == 0f) return
 
@@ -155,5 +166,25 @@ class MainViewModel {
         val exporter = FractalExporter(plain)
         exporter.saveJPG(path)
     }
+
+    // --- методы переключения функций и цвета ---
+    fun setFractalFunction(f: FractalFunction) {
+        fractalPainter.fractalFunc = f
+        mustRepaint = true
+    }
+
+    fun setColorFunction(c: ColorFunction) {
+        fractalPainter.colorFunc = c
+        mustRepaint = true
+    }
+
+    fun switchToRainbow() = setColorFunction(rainbow)
+    fun switchToGrayscale() = setColorFunction(grayscale)
+    //fun switchToFire() = setColorFunction(fireGradient)
+    fun switchToIce() = setColorFunction(iceGradient)
+    fun switchToNewtonColor() = setColorFunction(newtonColor)
+    fun switchToMandelbrot() = setFractalFunction(mandelbrotFunc)
+    fun switchToJulia() = setFractalFunction(juliaFunc)
+    fun switchToNewton() = setFractalFunction(newtonFunc)
 
 }

@@ -14,24 +14,30 @@ import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.input.pointer.*
 import kotlinx.coroutines.launch
 
+
 @Composable
 fun PaintPanel(
     modifier: Modifier = Modifier,
-    onImageUpdate: (ImageBitmap)->Unit = {},
-    onPaint: (DrawScope)->Unit = {},
+    onImageUpdate: (ImageBitmap) -> Unit = {},
+    onPaint: (DrawScope) -> Unit = {} // оставляем обычную лямбду, paint внутри уже runBlocking
 ) {
     val graphicsLayer = rememberGraphicsLayer()
     val scope = rememberCoroutineScope()
+
     Canvas(modifier.drawWithContent {
         graphicsLayer.record {
             this@drawWithContent.drawContent()
         }
         drawLayer(graphicsLayer)
-        scope.launch { onImageUpdate(graphicsLayer.toImageBitmap()) }
+
+        scope.launch {
+            onImageUpdate(graphicsLayer.toImageBitmap())
+        }
     }) {
         onPaint(this)
     }
 }
+
 
 @Composable
 fun SelectionPanel(
