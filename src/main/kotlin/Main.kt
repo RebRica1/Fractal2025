@@ -1,5 +1,6 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
@@ -23,7 +24,7 @@ import ru.gr05307.painting.grayscale
 fun App(viewModel: MainViewModel = MainViewModel()) {
 
     MaterialTheme {
-        Column {
+        Column() {
             Button(onClick = { viewModel.switchToRainbow() }) { Text("Rainbow") }
             Button(onClick = { viewModel.switchToGrayscale() }) { Text("Grayscale") }
             //Button(onClick = { viewModel.switchToFire() }) { Text("Fire") }

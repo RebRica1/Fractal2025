@@ -1,8 +1,6 @@
 package ru.gr05307.viewmodels
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ImageBitmap
@@ -24,11 +22,9 @@ import ru.gr05307.ExportFractal.FractalExporter
 import ru.gr05307.painting.*
 import ru.gr05307.painting.FractalFunction
 import ru.gr05307.painting.ColorFunction
-
-
-
-class MainViewModel{
+import ru.gr05307.painting.*
 import ru.gr05307.rollback.UndoManager
+
 
 class MainViewModel {
     var fractalImage: ImageBitmap = ImageBitmap(0, 0)
@@ -188,3 +184,10 @@ class MainViewModel {
     fun switchToNewton() = setFractalFunction(newtonFunc)
 
 }
+
+data class PlainState(
+    val xMin: Double,
+    val xMax: Double,
+    val yMin: Double,
+    val yMax: Double
+)
