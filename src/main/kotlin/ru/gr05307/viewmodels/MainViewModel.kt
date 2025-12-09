@@ -253,7 +253,7 @@ class MainViewModel {
         return (existingNumbers.maxOrNull() ?: 0) + 1
     }
 
-     //Reorder frames by their frame number to maintain proper order
+    //Reorder frames by their frame number to maintain proper order
     private fun reorderFramesByNumber() {
         if (tourKeyframes.size <= 1) return
 
@@ -285,7 +285,7 @@ class MainViewModel {
         mustRepaint = true
     }
 
-     //Renumber all frames sequentially starting from 1
+    //Renumber all frames sequentially starting from 1
     fun renumberAllFrames() {
         if (tourKeyframes.isEmpty()) return
 
@@ -490,7 +490,6 @@ class MainViewModel {
         fractalPainter.colorFunc = c
         mustRepaint = true
     }
-
     fun switchToRainbow() = setColorFunction(rainbow,"rainbow")
     fun switchToGrayscale() = setColorFunction(grayscale, "grayscale")
     //fun switchToFire() = setColorFunction(fireGradient)

@@ -133,13 +133,14 @@ fun FractalMenu(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Checkbox(
+                            Switch(
                                 checked = viewModel.showJulia,
                                 onCheckedChange = { value -> viewModel.setJuliaEnabled(value) }
                             )
                             Spacer(Modifier.width(8.dp))
-                            Text("Отображать множества Жюлиа")
+                            Text("Отображать множества Жюлиа", style = MaterialTheme.typography.body2)
                         }
+
 
                         Divider(color = Color.LightGray)
                         Text("Фрактал:", style = MaterialTheme.typography.h6)

@@ -1,6 +1,5 @@
 package ru.gr05307.viewmodels
 
-
 // Артем: Главный ViewModel для управления состоянием приложения
 class AppViewModel {
     val mainViewModel = MainViewModel()
@@ -8,7 +7,9 @@ class AppViewModel {
 
     init {
         mainViewModel.onJuliaPointSelected = { complex ->
-            juliaViewModel.onJuliaPointSelected(complex)
+            if (mainViewModel.showJulia) {
+                juliaViewModel.onJuliaPointSelected(complex)
+            }
         }
 
         mainViewModel.shouldCloseJuliaPanel = { shouldClose ->
