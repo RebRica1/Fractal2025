@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -48,20 +49,38 @@ fun App() {
 
 @Composable
 fun FractalApp(viewModel: AppViewModel) {
-    Row(modifier = Modifier.fillMaxSize()) {
-        MainFractalView(
-            viewModel = viewModel.mainViewModel,
-            modifier = Modifier
-                .fillMaxHeight()
-                .weight(7f)
-        )
 
-        JuliaSidePanel(
-            viewModel = viewModel.juliaViewModel,
-            modifier = Modifier
-                .fillMaxHeight()
-                .weight(3f)
-        )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .onPreviewKeyEvent { event ->
+                if (event.type == KeyEventType.KeyDown &&
+                    event.isCtrlPressed &&
+                    event.key == Key.Z
+                ) {
+                    viewModel.mainViewModel.performUndo()
+                    true // событие обработано
+                } else {
+                    false
+                }
+            }
+    ) {
+
+        Row(modifier = Modifier.fillMaxSize()) {
+            MainFractalView(
+                viewModel = viewModel.mainViewModel,
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(7f)
+            )
+
+            JuliaSidePanel(
+                viewModel = viewModel.juliaViewModel,
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(3f)
+            )
+        }
     }
 }
 
